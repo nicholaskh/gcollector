@@ -23,7 +23,7 @@ func NewPoller(config *InputConfig, forwarder *Forwarder) *Poller {
 }
 
 func (this *Poller) Poll() {
-	log.Info(this.config.File)
+	log.Info("Tail file: ", this.config.File)
 	t, err := tail.TailFile(this.config.File, tail.Config{Follow: true, Location: &tail.SeekInfo{Offset: 0, Whence: os.SEEK_END}})
 	if err != nil {
 		log.Error("tail file[%s] errer: %s", this.config.File, err.Error())
@@ -49,6 +49,8 @@ func (this *Poller) filter(txt string) bool {
 			if logPart[5] == "404" {
 				return true
 			}
+		case LOG_TYPE_PHP_ERROR:
+			return this.parser.match(txt, tp)
 		}
 	}
 	return false

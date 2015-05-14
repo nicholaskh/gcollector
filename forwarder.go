@@ -9,18 +9,24 @@ import (
 type Forwarder struct {
 	queue chan string
 	net.Conn
+	toAddr string
 }
 
 func NewForwarder(toAddr string) *Forwarder {
 	this := new(Forwarder)
-	var err error
-	this.Conn, err = net.Dial("tcp", toAddr)
-	if err != nil {
-		log.Error(err)
-	}
+	this.toAddr = toAddr
+	this.connect()
 	this.queue = make(chan string, 100000)
 
 	return this
+}
+
+func (this *Forwarder) connect() {
+	var err error
+	this.Conn, err = net.Dial("tcp", this.toAddr)
+	if err != nil {
+		log.Error(err)
+	}
 }
 
 func (this *Forwarder) Enqueue(line string) {
@@ -30,6 +36,24 @@ func (this *Forwarder) Enqueue(line string) {
 func (this *Forwarder) Send() {
 	for line := range this.queue {
 		log.Debug(line)
-		this.Write([]byte(line))
+		if this.Conn == nil {
+			this.connect()
+		}
+		if this.Conn != nil {
+			_, err := this.Write([]byte(line))
+			if err != nil {
+				log.Error("write error: %s", err.Error())
+				// retry
+				for i := 0; i < 3; i++ {
+					this.connect()
+					if this.Conn != nil {
+						_, err = this.Write([]byte(line))
+						if err == nil {
+							break
+						}
+					}
+				}
+			}
+		}
 	}
 }
