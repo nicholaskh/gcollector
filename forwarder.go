@@ -15,18 +15,28 @@ type Forwarder struct {
 func NewForwarder(toAddr string) *Forwarder {
 	this := new(Forwarder)
 	this.toAddr = toAddr
-	this.connect()
+	this.reconnect()
 	this.queue = make(chan string, 100000)
 
 	return this
 }
 
-func (this *Forwarder) connect() {
+func (this *Forwarder) reconnect() {
 	var err error
 	this.Conn, err = net.Dial("tcp", this.toAddr)
 	if err != nil {
 		log.Error(err)
 	}
+
+	go func() {
+		for {
+			_, err := this.Conn.Read(make([]byte, 1000))
+			if err != nil {
+				this.Conn.Close()
+				break
+			}
+		}
+	}()
 }
 
 func (this *Forwarder) Enqueue(line string) {
@@ -37,15 +47,16 @@ func (this *Forwarder) Send() {
 	for line := range this.queue {
 		log.Debug(line)
 		if this.Conn == nil {
-			this.connect()
+			this.reconnect()
 		}
+		log.Warn(this.Conn)
 		if this.Conn != nil {
 			_, err := this.Write([]byte(line))
 			if err != nil {
 				log.Error("write error: %s", err.Error())
 				// retry
 				for i := 0; i < 3; i++ {
-					this.connect()
+					this.reconnect()
 					if this.Conn != nil {
 						_, err = this.Write([]byte(line))
 						if err == nil {
