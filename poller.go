@@ -79,11 +79,17 @@ func (this *Poller) filter(txt string) (tag string) {
 		switch tp {
 		case LOG_TYPE_NGINX_500, LOG_TYPE_APACHE_500:
 			logPart := this.parser.parse(txt, tp)
+			if len(logPart) < 6 {
+				return ""
+			}
 			if logPart[5] == "500" {
 				return tp
 			}
 		case LOG_TYPE_NGINX_404, LOG_TYPE_APACHE_404:
 			logPart := this.parser.parse(txt, tp)
+			if len(logPart) < 6 {
+				return ""
+			}
 			if logPart[5] == "404" {
 				return tp
 			}
