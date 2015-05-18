@@ -28,15 +28,17 @@ func (this *Forwarder) reconnect() {
 		log.Error(err)
 	}
 
-	go func() {
-		for {
-			_, err := this.Conn.Read(make([]byte, 1000))
-			if err != nil {
-				this.Conn.Close()
-				break
+	if this.Conn != nil {
+		go func() {
+			for {
+				_, err := this.Conn.Read(make([]byte, 1000))
+				if err != nil {
+					this.Conn.Close()
+					break
+				}
 			}
-		}
-	}()
+		}()
+	}
 }
 
 func (this *Forwarder) Enqueue(line string) {
@@ -49,7 +51,6 @@ func (this *Forwarder) Send() {
 		if this.Conn == nil {
 			this.reconnect()
 		}
-		log.Warn(this.Conn)
 		if this.Conn != nil {
 			_, err := this.Write([]byte(line))
 			if err != nil {
