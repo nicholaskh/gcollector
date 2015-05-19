@@ -99,7 +99,6 @@ func (this *Poller) filter(txt string) (tag string) {
 			}
 		case LOG_TYPE_ELAPSED:
 			return tp
-
 		case LOG_TYPE_ANY:
 			return tp
 		}

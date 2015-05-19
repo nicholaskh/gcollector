@@ -1,8 +1,6 @@
 package main
 
-import (
 //	log "github.com/nicholaskh/log4go"
-)
 
 type Gcollector struct {
 	config *GcollectorConfig
