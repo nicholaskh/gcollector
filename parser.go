@@ -36,7 +36,11 @@ func (this *Parser) parse(txt, tp string) []string {
 	if !exists {
 		log.Warn("regexp not found for %s", tp)
 	}
-	return re.FindAllStringSubmatch(txt, -1)[0][1:]
+	match := re.FindAllStringSubmatch(txt, -1)
+	if len(match) < 1 || len(match[0]) < 2 {
+		return []string{}
+	}
+	return match[0][1:]
 }
 
 func (this Parser) match(txt, tp string) bool {
