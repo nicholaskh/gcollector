@@ -28,34 +28,19 @@ func NewPoller(config *InputConfig, forwarder *Forwarder) *Poller {
 }
 
 func (this *Poller) Poll() {
-	if strings.Contains(this.config.File, "*") {
+	if this.config.File[len(this.config.File)-2:] == "**" {
 		last_sep := strings.LastIndex(this.config.File, PATH_SEP)
 		dir := this.config.File[0:last_sep]
-		dir_list, err := ioutil.ReadDir(dir)
-		if err != nil {
-			log.Error("read dir error: %s", err.Error())
-			return
-		}
-
+		this.tailFilesInDirRecursive(dir)
+	} else if strings.Contains(this.config.File, "**") {
+		panic("'**' pattern must in the end")
+	} else if strings.Contains(this.config.File, "*") {
+		last_sep := strings.LastIndex(this.config.File, PATH_SEP)
+		dir := this.config.File[0:last_sep]
 		filename := this.config.File[last_sep+1:]
-		sourceReg := fmt.Sprintf("^%s$", strings.Replace(filename, "*", ".*?", -1))
-		reg := regexp.MustCompile(sourceReg)
-
-		for _, path := range dir_list {
-			if path.IsDir() == true {
-				continue
-			}
-
-			if matchFile(reg, path.Name()) {
-				go this.tailFile(fmt.Sprintf("%s%s%s", dir, PATH_SEP, path.Name()))
-			}
-
-		}
-
-		go this.watchDir(dir)
-
+		this.tailFilesInDir(dir, filename)
 	} else {
-		go this.tailFile(this.config.File)
+		go this.tailFile(this.config.File, false)
 	}
 }
 
@@ -63,9 +48,15 @@ func matchFile(sourceReg *regexp.Regexp, destFile string) bool {
 	return sourceReg.MatchString(destFile)
 }
 
-func (this *Poller) tailFile(filename string) {
+func (this *Poller) tailFile(filename string, isNew bool) {
 	log.Info("Tail file: %s", filename)
-	t, err := tail.TailFile(filename, tail.Config{Follow: true, Location: &tail.SeekInfo{Offset: 0, Whence: os.SEEK_END}})
+	var location *tail.SeekInfo
+	if isNew {
+		location = &tail.SeekInfo{Offset: 0, Whence: os.SEEK_SET}
+	} else {
+		location = &tail.SeekInfo{Offset: 0, Whence: os.SEEK_END}
+	}
+	t, err := tail.TailFile(filename, tail.Config{Follow: true, Location: location})
 	if err != nil {
 		log.Error("tail file[%s] errer: %s", filename, err.Error())
 	}
@@ -100,16 +91,38 @@ func (this *Poller) filter(txt string) (tag string) {
 			if this.parser.match(txt, tp) {
 				return tp
 			}
-		case LOG_TYPE_ELAPSED:
-			return tp
-		case LOG_TYPE_ANY:
+		case LOG_TYPE_APP:
 			return tp
 		}
 	}
 	return ""
 }
 
-func (this *Poller) watchDir(dir string) {
+func (this *Poller) tailFilesInDir(dir string, filenameReg string) {
+	sourceReg := fmt.Sprintf("^%s$", strings.Replace(filenameReg, "*", ".*?", -1))
+	dir_list, err := ioutil.ReadDir(dir)
+	if err != nil {
+		log.Error("read dir error: %s", err.Error())
+		return
+	}
+
+	reg := regexp.MustCompile(sourceReg)
+
+	for _, path := range dir_list {
+		if path.IsDir() == true {
+			continue
+		}
+
+		if matchFile(reg, path.Name()) {
+			go this.tailFile(fmt.Sprintf("%s%s%s", dir, PATH_SEP, path.Name()), false)
+		}
+
+	}
+
+	go this.watchDir(dir, false)
+}
+
+func (this *Poller) watchDir(dir string, followDir bool) {
 	watcher, err := fsnotify.NewWatcher()
 	err = watcher.Watch(dir)
 	if err != nil {
@@ -127,11 +140,43 @@ func (this *Poller) watchDir(dir string) {
 		select {
 		case ev := <-watcher.Event:
 			if ev.IsCreate() {
-				go this.tailFile(ev.Name)
+				finfo, err := os.Stat(ev.Name)
+				if err != nil {
+					panic(err)
+					return
+				}
+				if finfo.IsDir() {
+					if followDir {
+						this.tailFilesInDir(ev.Name, "*")
+					} else {
+						continue
+					}
+				} else {
+					go this.tailFile(ev.Name, true)
+				}
 			}
 		case err := <-watcher.Error:
 			log.Error("error:", err)
 		}
 	}
 
+}
+
+func (this *Poller) tailFilesInDirRecursive(dir string) {
+	dir_list, err := ioutil.ReadDir(dir)
+	if err != nil {
+		log.Error("read dir error: %s", err.Error())
+		return
+	}
+
+	for _, path := range dir_list {
+		fullPath := fmt.Sprintf("%s%s%s", dir, PATH_SEP, path.Name())
+		if path.IsDir() == true {
+			this.tailFilesInDirRecursive(fullPath)
+		} else {
+			go this.tailFile(fullPath, false)
+		}
+	}
+
+	go this.watchDir(dir, true)
 }
