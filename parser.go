@@ -8,7 +8,8 @@ import (
 
 var (
 	//[05/13/15 20:26:09] [INFO] 127.0.0.1 - - [13/May/2015:20:26:09 +0800] "GET /javascript/ffan/common/json2.jsa HTTP/1.1" 404 8978 "-" "Mozilla/5.0 (X11; Ubuntu; Linux x86_64; rv:37.0) Gecko/20100101 Firefox/37.0"
-	nginxAccessLogReg  = regexp.MustCompile(`^([^ ]*) ([^ ]*) ([^ ]*) \[([^\]]*)\] "([^"]*)" ([^ ]*) ([^ ]*) "([^"]*)" "([^"]*)"$`)
+	//nginxAccessLogReg  = regexp.MustCompile(`^([^ ]*) ([^ ]*) ([^ ]*) \[([^\]]*)\] "([^"]*)" ([^ ]*) ([^ ]*) "([^"]*)" "([^"]*)"$`)
+	nginxAccessLogReg  = regexp.MustCompile(`^([^ ]*) ([^ ]*) ([^ ]*) \[([^\]]*)\] ([^ ]*) "([^"]*)" ([^ ]*) ([^ ]*) ([^ ]*) "([^"]*)" "([^"]*)" "([^"]*)" "([^"]*)"$`)
 	apacheAccessLogReg = nginxAccessLogReg
 	//[14-May-2015 08:29:10 Asia/Chongqing] PHP Notice:  Use of undefined constant a - assumed 'a' in /home/nicholaskh/wanda/ffan/web/index.php on line 2
 	phpErrorReg = regexp.MustCompile(`^\[([^\]]*)\] ([^:]*): (.*)$`)
