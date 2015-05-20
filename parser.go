@@ -38,6 +38,12 @@ func (this *Parser) parse(txt, tp string) []string {
 		log.Warn("regexp not found for %s", tp)
 	}
 	match := re.FindAllStringSubmatch(txt, -1)
+	for _, r := range match {
+		for _, rr := range r {
+			log.Info(rr)
+		}
+	}
+
 	if len(match) < 1 || len(match[0]) < 2 {
 		return []string{}
 	}
