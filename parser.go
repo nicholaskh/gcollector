@@ -40,7 +40,7 @@ func (this *Parser) parse(txt, tp string) []string {
 	match := re.FindAllStringSubmatch(txt, -1)
 	for _, r := range match {
 		for _, rr := range r {
-			log.Info(rr)
+			log.Debug(rr)
 		}
 	}
 
