@@ -7,6 +7,7 @@ import (
 	"regexp"
 	"strings"
 
+	"github.com/howeyc/fsnotify"
 	log "github.com/nicholaskh/log4go"
 	"github.com/nicholaskh/tail"
 )
@@ -50,6 +51,8 @@ func (this *Poller) Poll() {
 			}
 
 		}
+
+		go this.watchDir(dir)
 
 	} else {
 		go this.tailFile(this.config.File)
@@ -104,4 +107,31 @@ func (this *Poller) filter(txt string) (tag string) {
 		}
 	}
 	return ""
+}
+
+func (this *Poller) watchDir(dir string) {
+	watcher, err := fsnotify.NewWatcher()
+	err = watcher.Watch(dir)
+	if err != nil {
+		panic(err)
+	}
+	defer func() {
+		err := watcher.Close()
+		if err != nil {
+			panic(err)
+		}
+	}()
+
+	// Process events
+	for {
+		select {
+		case ev := <-watcher.Event:
+			if ev.IsCreate() {
+				go this.tailFile(ev.Name)
+			}
+		case err := <-watcher.Error:
+			log.Error("error:", err)
+		}
+	}
+
 }
