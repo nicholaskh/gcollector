@@ -12,10 +12,14 @@ var (
 		crashLogFile string
 		showVersion  bool
 		tick         int
+		lockFile     string
+		kill         bool
 	}
 )
 
 func parseFlags() {
+	flag.BoolVar(&options.kill, "k", false, "kill gcollectord")
+	flag.StringVar(&options.lockFile, "lockfile", "gcollectord.lock", "lock file")
 	flag.StringVar(&options.configFile, "conf", "etc/gcollector.cf", "config file")
 	flag.BoolVar(&options.showVersion, "v", false, "show version and exit")
 	flag.StringVar(&options.logFile, "log", "stdout", "log file")
