@@ -1,0 +1,22 @@
+{
+	to_addr: ":5687"
+	
+	inputs: [
+		{
+			file: "/var/log/nginx/access.log"
+			types: "nginx_500,nginx_404"
+		},
+		{
+			file: "/var/log/apache2/access.log"
+			types: "apache_500,apache_404"
+		},
+		{
+			file: "/var/log/fpm-php.www.log"
+			types: "php_error"
+		},
+		{
+			file: "/home/nicholaskh/wanda/ffan/web/logs/**"
+			types: "app"
+		},
+	]
+}
