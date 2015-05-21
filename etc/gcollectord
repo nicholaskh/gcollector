@@ -1,0 +1,105 @@
+#!/bin/sh
+#
+# Startup / shutdown script for the gcollector daemon
+#
+# Copyright (c) 2011, FunPlus, Inc.
+# All rights reserved
+#
+#
+### BEGIN INIT INFO
+# Provides:          gcollectord
+# Required-Start:    $network $local_fs
+# Required-Stop:
+# Should-Start:      $named
+# Should-Stop:
+# Default-Start:        2 3 4 5
+# Default-Stop:         0 1 6
+# Short-Description:    gcollector daemon
+# Description:          gcollector daemon
+
+### END INIT INFO
+
+. /etc/init.d/functions
+
+if [ "$(id -u)" != "0" ]; then
+    echo "Must run as root"
+    exit 1
+fi
+
+PATH=/usr/local/sbin:/usr/local/bin:/sbin:/bin:/usr/sbin:/usr/bin
+
+GCOLLECTOR_HOME=/var/wd/frame/gcollector
+DAEMON=$GCOLLECTOR_HOME/bin/gcollectord
+PIDFILE=$GCOLLECTOR_HOME/var/gcollectord.pid
+CONFIGFILE=$GCOLLECTOR_HOME/etc/gcollectord.cf
+LOGFILE=$GCOLLECTOR_HOME/var/gcollectord.log
+CRASHLOG=$GCOLLECTOR_HOME/panic.dump
+LOCKFILE=$GCOLLECTOR_HOME/var/gcollectord.lock
+
+test -f $DAEMON || exit 0
+test -f $CONFIGFILE || exit 0
+
+# Otherwise, RHEL (and apparently Fedora) tries to "help" and set soft
+# limit of core file size to 0 for daemons. It's done as part of
+# daemon shell function shortly after changing user. See MB-6601
+DAEMON_COREFILE_LIMIT=unlimited
+
+start() {
+    touch $PIDFILE 
+    cd $GCOLLECTOR_HOME
+    ulimit -n 40960
+    ulimit -c unlimited
+    ulimit -l unlimited
+    daemon --pidfile PIDFILE "/usr/sbin/daemonize $DAEMON -conf $CONFIGFILE -crashlog $CRASHLOG -log $LOGFILE -lockfile $LOCKFILE -level trace"
+    errcode=$?
+    return $errcode
+}
+
+stop() {
+    daemon "$DAEMON -k -lockfile $LOCKFILE -conf $CONFIGFILE"
+    errcode=$?
+    return $errcode
+}
+
+running() {
+    pidofproc -p $PIDFILE $DAEMON >/dev/null
+    errcode=$?
+    return $errcode
+}
+
+case $1 in
+    start)
+        if running ; then
+            warning && echo "gcollector-daemon is already started"
+            exit 0
+        fi
+        echo -n $"Starting gcollector-daemon"
+        start
+        echo
+        ;;
+    stop)
+        echo -n $"Stopping gcollector-daemon"
+        stop
+        echo
+        ;;
+    restart)
+        echo -n $"Stopping gcollector-daemon"
+        stop
+        echo
+        echo -n $"Starting gcollector-daemon"
+        start
+        echo
+        ;;
+    status)
+        if running ; then
+            echo "gcollector-daemon is running"
+            exit 0
+        else
+            echo "gcollector-daemon is not running"
+            exit 3
+        fi
+        ;;
+    *)
+        echo "Usage: /etc/init.d/gcollectord {start|stop|restart|status}" >&2
+        exit 3
+esac
