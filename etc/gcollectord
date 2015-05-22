@@ -30,11 +30,10 @@ PATH=/usr/local/sbin:/usr/local/bin:/sbin:/bin:/usr/sbin:/usr/bin
 
 GCOLLECTOR_HOME=/var/wd/frame/gcollector
 DAEMON=$GCOLLECTOR_HOME/bin/gcollectord
-PIDFILE=$GCOLLECTOR_HOME/var/gcollectord.pid
 CONFIGFILE=$GCOLLECTOR_HOME/etc/gcollectord.cf
 LOGFILE=$GCOLLECTOR_HOME/var/gcollectord.log
 CRASHLOG=$GCOLLECTOR_HOME/panic.dump
-LOCKFILE=$GCOLLECTOR_HOME/var/gcollectord.lock
+LOCKFILE=$GCOLLECTOR_HOME/var/gcollectord.pid
 
 test -f $DAEMON || exit 0
 test -f $CONFIGFILE || exit 0
@@ -45,12 +44,11 @@ test -f $CONFIGFILE || exit 0
 DAEMON_COREFILE_LIMIT=unlimited
 
 start() {
-    touch $PIDFILE 
     cd $GCOLLECTOR_HOME
     ulimit -n 40960
     ulimit -c unlimited
     ulimit -l unlimited
-    daemon --pidfile PIDFILE "/usr/sbin/daemonize $DAEMON -conf $CONFIGFILE -crashlog $CRASHLOG -log $LOGFILE -lockfile $LOCKFILE -level trace"
+    daemon "/usr/sbin/daemonize $DAEMON -conf $CONFIGFILE -crashlog $CRASHLOG -log $LOGFILE -lockfile $LOCKFILE -level trace"
     errcode=$?
     return $errcode
 }
@@ -62,7 +60,7 @@ stop() {
 }
 
 running() {
-    pidofproc -p $PIDFILE $DAEMON >/dev/null
+    pidofproc -p $LOCKFILE $DAEMON >/dev/null
     errcode=$?
     return $errcode
 }
