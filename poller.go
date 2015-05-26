@@ -63,9 +63,6 @@ func (this *Poller) tailFile(filename string, isNew bool) {
 	for line := range t.Lines {
 		txt := line.Text
 		if tag := this.filter(txt); tag != "" {
-			if len(txt) < 347 {
-				log.Error("txt length: %d, log error: %s", len(txt), txt)
-			}
 			this.forwarder.Enqueue(fmt.Sprintf("%s|%s", tag, txt))
 		}
 	}
