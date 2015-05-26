@@ -14,12 +14,14 @@ var (
 		tick         int
 		lockFile     string
 		kill         bool
+		concurrency  int
 	}
 )
 
 func parseFlags() {
 	flag.BoolVar(&options.kill, "k", false, "kill gcollectord")
 	flag.StringVar(&options.lockFile, "lockfile", "gcollectord.lock", "lock file")
+	flag.IntVar(&options.concurrency, "c", 2, "max procs")
 	flag.StringVar(&options.configFile, "conf", "etc/gcollector.cf", "config file")
 	flag.BoolVar(&options.showVersion, "v", false, "show version and exit")
 	flag.StringVar(&options.logFile, "log", "stdout", "log file")

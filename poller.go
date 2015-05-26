@@ -63,6 +63,9 @@ func (this *Poller) tailFile(filename string, isNew bool) {
 	for line := range t.Lines {
 		txt := line.Text
 		if tag := this.filter(txt); tag != "" {
+			if len(txt) < 347 {
+				log.Error("txt length: %d, log error: %s", len(txt), txt)
+			}
 			this.forwarder.Enqueue(fmt.Sprintf("%s|%s", tag, txt))
 		}
 	}
@@ -155,6 +158,7 @@ func (this *Poller) watchDir(dir string, followDir bool) {
 					go this.tailFile(ev.Name, true)
 				}
 			}
+		// TODO -- when delete file, stop tail
 		case err := <-watcher.Error:
 			log.Error("error:", err)
 		}

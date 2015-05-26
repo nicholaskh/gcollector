@@ -34,3 +34,5 @@ gcollector
 .DS_Store
 
 *.class
+
+*.lock
