@@ -51,13 +51,8 @@ func (this *Forwarder) Enqueue(line string) {
 }
 
 func (this *Forwarder) Send() {
-	i := 0
 	for line := range this.queue {
 		log.Debug(line)
-		i++
-		if i%10000 == 0 {
-			log.Info("sent %d lines", i)
-		}
 		if this.proto.Conn == nil {
 			this.reconnect()
 		}
