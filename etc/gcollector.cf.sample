@@ -1,5 +1,8 @@
 {
-	to_addr: ":5687"
+	forwarder: {
+		to_addr: ":5687"
+		backlog: 1000
+	}
 	
 	inputs: [
 		{

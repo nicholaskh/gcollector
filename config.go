@@ -8,17 +8,23 @@ import (
 )
 
 type GcollectorConfig struct {
-	ToAddr string
+	Forwarder *ForwarderConfig
 
 	Inputs []*InputConfig
 }
 
 func (this *GcollectorConfig) LoadConfig(cf *conf.Conf) {
-	this.ToAddr = cf.String("to_addr", ":5687")
+	section, err := cf.Section("forwarder")
+	if err != nil {
+		panic("no forwarder config found")
+	}
+	this.Forwarder = new(ForwarderConfig)
+	this.Forwarder.ToAddr = section.String("to_addr", ":5687")
+	this.Forwarder.Backlog = section.Int("backlog", 1000)
 
 	this.Inputs = make([]*InputConfig, 0)
 	for i, _ := range cf.List("inputs", nil) {
-		section, err := cf.Section(fmt.Sprintf("inputs[%d]", i))
+		section, err = cf.Section(fmt.Sprintf("inputs[%d]", i))
 		if err != nil {
 			panic(err)
 		}
@@ -35,4 +41,9 @@ func (this *GcollectorConfig) LoadConfig(cf *conf.Conf) {
 type InputConfig struct {
 	File  string
 	Types []string
+}
+
+type ForwarderConfig struct {
+	ToAddr  string
+	Backlog int
 }

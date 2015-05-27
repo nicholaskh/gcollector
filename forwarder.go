@@ -8,17 +8,17 @@ import (
 )
 
 type Forwarder struct {
+	config *ForwarderConfig
 	queue  chan string
-	toAddr string
 	proto  *server.Protocol
 }
 
-func NewForwarder(toAddr string) *Forwarder {
+func NewForwarder(config *ForwarderConfig) *Forwarder {
 	this := new(Forwarder)
-	this.toAddr = toAddr
+	this.config = config
 	this.proto = server.NewProtocol()
 	this.reconnect()
-	this.queue = make(chan string, 100000)
+	this.queue = make(chan string, this.config.Backlog)
 
 	return this
 }
@@ -27,7 +27,7 @@ func (this *Forwarder) reconnect() {
 	if this.proto.Conn != nil {
 		this.proto.Conn.Close()
 	}
-	conn, err := net.Dial("tcp", this.toAddr)
+	conn, err := net.Dial("tcp", this.config.ToAddr)
 	if err != nil {
 		log.Error(err)
 	}
@@ -38,9 +38,10 @@ func (this *Forwarder) reconnect() {
 			for {
 				_, err := this.proto.Conn.Read(make([]byte, 1000))
 				if err != nil {
-					this.proto.Conn.Close()
-					break
+					log.Warn(err)
 				}
+				this.proto.Conn.Close()
+				break
 			}
 		}()
 	}

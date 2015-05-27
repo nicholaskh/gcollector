@@ -14,7 +14,7 @@ func NewGcollector(config *GcollectorConfig) *Gcollector {
 }
 
 func (this *Gcollector) RunForever() {
-	forwarder := NewForwarder(this.config.ToAddr)
+	forwarder := NewForwarder(this.config.Forwarder)
 	for _, inputConfig := range this.config.Inputs {
 		poller := NewPoller(inputConfig, forwarder)
 		go poller.Poll()
