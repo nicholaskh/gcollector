@@ -11,6 +11,7 @@ type Forwarder struct {
 	config *ForwarderConfig
 	queue  chan string
 	proto  *server.Protocol
+	net.Conn
 }
 
 func NewForwarder(config *ForwarderConfig) *Forwarder {
@@ -24,23 +25,23 @@ func NewForwarder(config *ForwarderConfig) *Forwarder {
 }
 
 func (this *Forwarder) reconnect() {
-	if this.proto.Conn != nil {
-		this.proto.Conn.Close()
+	if this.Conn != nil {
+		this.Conn.Close()
 	}
 	conn, err := net.Dial("tcp", this.config.ToAddr)
 	if err != nil {
 		log.Error(err)
 	}
-	this.proto.SetConn(conn)
+	this.Conn = conn
 
 	if conn != nil {
 		go func() {
 			for {
-				_, err := this.proto.Conn.Read(make([]byte, 1000))
+				_, err := this.Conn.Read(make([]byte, 1000))
 				if err != nil {
 					log.Warn(err)
 				}
-				this.proto.Conn.Close()
+				this.Conn.Close()
 				break
 			}
 		}()
@@ -54,18 +55,19 @@ func (this *Forwarder) Enqueue(line string) {
 func (this *Forwarder) Send() {
 	for line := range this.queue {
 		log.Debug(line)
-		if this.proto.Conn == nil {
+		data := this.proto.Marshal([]byte(line))
+		if this.Conn == nil {
 			this.reconnect()
 		}
-		if this.proto.Conn != nil {
-			_, err := this.proto.Write([]byte(line))
+		if this.Conn != nil {
+			_, err := this.Write(data)
 			if err != nil {
 				log.Error("write error: %s", err.Error())
 				// retry
 				for i := 0; i < 3; i++ {
 					this.reconnect()
-					if this.proto.Conn != nil {
-						_, err = this.proto.Write([]byte(line))
+					if this.Conn != nil {
+						_, err = this.Write(data)
 						if err == nil {
 							break
 						}
