@@ -155,7 +155,6 @@ func (this *Poller) watchDir(dir string, followDir bool) {
 					go this.tailFile(ev.Name, true)
 				}
 			}
-		// TODO -- when delete file, stop tail
 		case err := <-watcher.Error:
 			log.Error("error:", err)
 		}
