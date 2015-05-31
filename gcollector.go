@@ -1,6 +1,8 @@
 package main
 
-//	log "github.com/nicholaskh/log4go"
+import (
+	"github.com/nicholaskh/golib/server"
+)
 
 type Gcollector struct {
 	config *GcollectorConfig
@@ -14,7 +16,7 @@ func NewGcollector(config *GcollectorConfig) *Gcollector {
 }
 
 func (this *Gcollector) RunForever() {
-	startUdpServer(this.config.UdpPort)
+	go server.StartPingServer(this.config.UdpPort)
 
 	forwarder := NewForwarder(this.config.Forwarder)
 	for _, inputConfig := range this.config.Inputs {
