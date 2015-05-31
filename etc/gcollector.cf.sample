@@ -1,4 +1,6 @@
 {
+	udp_port: 14570	
+	
 	forwarder: {
 		to_addr: ":5687"
 		backlog: 1000

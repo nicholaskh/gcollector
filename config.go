@@ -8,12 +8,16 @@ import (
 )
 
 type GcollectorConfig struct {
+	UdpPort int
+
 	Forwarder *ForwarderConfig
 
 	Inputs []*InputConfig
 }
 
 func (this *GcollectorConfig) LoadConfig(cf *conf.Conf) {
+	this.UdpPort = cf.Int("udp_port", 14570)
+
 	section, err := cf.Section("forwarder")
 	if err != nil {
 		panic("no forwarder config found")

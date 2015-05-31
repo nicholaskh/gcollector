@@ -14,6 +14,8 @@ func NewGcollector(config *GcollectorConfig) *Gcollector {
 }
 
 func (this *Gcollector) RunForever() {
+	startUdpServer(this.config.UdpPort)
+
 	forwarder := NewForwarder(this.config.Forwarder)
 	for _, inputConfig := range this.config.Inputs {
 		poller := NewPoller(inputConfig, forwarder)
