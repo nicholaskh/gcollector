@@ -54,7 +54,6 @@ func (this *Forwarder) Enqueue(line string) {
 
 func (this *Forwarder) Send() {
 	for line := range this.queue {
-		log.Debug(line)
 		data := this.proto.Marshal([]byte(line))
 		if this.Conn == nil {
 			this.reconnect()
