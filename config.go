@@ -27,7 +27,7 @@ func (this *GcollectorConfig) LoadConfig(cf *conf.Conf) {
 	this.Forwarder.Backlog = section.Int("backlog", 1000)
 
 	this.Inputs = make([]*InputConfig, 0)
-	for i, _ := range cf.List("inputs", nil) {
+	for i, _ := range cf.List("inputs", []interface{}{}) {
 		section, err = cf.Section(fmt.Sprintf("inputs[%d]", i))
 		if err != nil {
 			panic(err)
