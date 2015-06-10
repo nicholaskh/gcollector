@@ -8,6 +8,8 @@ import (
 )
 
 type GcollectorConfig struct {
+	EtcServers []string
+
 	UdpPort int
 
 	Forwarder *ForwarderConfig
@@ -16,19 +18,16 @@ type GcollectorConfig struct {
 }
 
 func (this *GcollectorConfig) LoadConfig(cf *conf.Conf) {
-	this.UdpPort = cf.Int("udp_port", 14570)
-
-	section, err := cf.Section("forwarder")
-	if err != nil {
-		panic("no forwarder config found")
+	this.EtcServers = cf.StringList("etc_servers", nil)
+	if this.EtcServers == nil {
+		panic("No etc servers found")
 	}
-	this.Forwarder = new(ForwarderConfig)
-	this.Forwarder.ToAddr = section.String("to_addr", ":5687")
-	this.Forwarder.Backlog = section.Int("backlog", 1000)
+
+	this.UdpPort = cf.Int("udp_port", 14570)
 
 	this.Inputs = make([]*InputConfig, 0)
 	for i, _ := range cf.List("inputs", []interface{}{}) {
-		section, err = cf.Section(fmt.Sprintf("inputs[%d]", i))
+		section, err := cf.Section(fmt.Sprintf("inputs[%d]", i))
 		if err != nil {
 			panic(err)
 		}
@@ -40,6 +39,16 @@ func (this *GcollectorConfig) LoadConfig(cf *conf.Conf) {
 		}
 		this.Inputs = append(this.Inputs, input)
 	}
+}
+
+func (this *GcollectorConfig) LoadForwarder(cf *conf.Conf) {
+	this.Forwarder = new(ForwarderConfig)
+	var err error
+	this.Forwarder.ToAddr, err = GetPiped()
+	if err != nil {
+		panic(err)
+	}
+	this.Forwarder.Backlog = cf.Int("forwarder_backlog", 1000)
 }
 
 type InputConfig struct {

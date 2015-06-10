@@ -2,6 +2,7 @@ package main
 
 import (
 	"fmt"
+	"math/rand"
 	"os"
 	"runtime"
 	"runtime/debug"
@@ -56,6 +57,15 @@ func init() {
 	conf := server.LoadConfig(options.configFile)
 	GcollectorConf = new(GcollectorConfig)
 	GcollectorConf.LoadConfig(conf)
+
+	err := RegisterEtc(GcollectorConf.EtcServers)
+	if err != nil {
+		panic(err)
+	}
+
+	GcollectorConf.LoadForwarder(conf)
+
+	rand.Seed(time.Now().UnixNano())
 }
 
 func main() {
@@ -85,4 +95,5 @@ func cleanup() {
 		locking.UnlockInstance(options.lockFile)
 		log.Debug("Cleanup lock %s", options.lockFile)
 	}
+	UnregisterEtc()
 }

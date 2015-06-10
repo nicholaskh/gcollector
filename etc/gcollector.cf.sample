@@ -1,4 +1,8 @@
 {
+	etc_servers: [
+		"127.0.0.1:2181",
+	]
+	
 	udp_port: 14570	
 	
 	forwarder: {
