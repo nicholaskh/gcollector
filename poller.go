@@ -142,8 +142,8 @@ func (this *Poller) watchDir(dir string, followDir bool) {
 			if ev.IsCreate() {
 				finfo, err := os.Stat(ev.Name)
 				if err != nil {
-					panic(err)
-					return
+					log.Error(err)
+					continue
 				}
 				if finfo.IsDir() {
 					if followDir {

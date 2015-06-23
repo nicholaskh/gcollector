@@ -10,6 +10,8 @@ import (
 type GcollectorConfig struct {
 	EtcServers []string
 
+	App string
+
 	UdpPort int
 
 	Forwarder *ForwarderConfig
@@ -21,6 +23,11 @@ func (this *GcollectorConfig) LoadConfig(cf *conf.Conf) {
 	this.EtcServers = cf.StringList("etc_servers", nil)
 	if this.EtcServers == nil {
 		panic("No etc servers found")
+	}
+
+	this.App = cf.String("app", "")
+	if this.App == "" {
+		panic("No app specified")
 	}
 
 	this.UdpPort = cf.Int("udp_port", 14570)

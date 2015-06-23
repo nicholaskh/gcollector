@@ -3,21 +3,20 @@ package main
 import (
 	"net"
 
-	"github.com/nicholaskh/golib/server"
 	log "github.com/nicholaskh/log4go"
 )
 
 type Forwarder struct {
 	config *ForwarderConfig
 	queue  chan string
-	proto  *server.Protocol
+	proto  *Protocol
 	net.Conn
 }
 
-func NewForwarder(config *ForwarderConfig) *Forwarder {
+func NewForwarder(config *ForwarderConfig, app string) *Forwarder {
 	this := new(Forwarder)
 	this.config = config
-	this.proto = server.NewProtocol()
+	this.proto = NewProtocol(app)
 	this.reconnect()
 	this.queue = make(chan string, this.config.Backlog)
 

@@ -18,7 +18,7 @@ func NewGcollector(config *GcollectorConfig) *Gcollector {
 func (this *Gcollector) RunForever() {
 	go server.StartPingServer(this.config.UdpPort)
 
-	forwarder := NewForwarder(this.config.Forwarder)
+	forwarder := NewForwarder(this.config.Forwarder, this.config.App)
 	for _, inputConfig := range this.config.Inputs {
 		poller := NewPoller(inputConfig, forwarder)
 		go poller.Poll()

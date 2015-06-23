@@ -3,6 +3,8 @@
 		"127.0.0.1:2181",
 	]
 	
+	app: "default"
+	
 	udp_port: 14570	
 	
 	forwarder: {
