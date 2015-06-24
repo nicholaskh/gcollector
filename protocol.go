@@ -21,7 +21,6 @@ type Protocol struct {
 func NewProtocol(app string) *Protocol {
 	this := new(Protocol)
 	this.app = app
-	log.Info(this.app)
 
 	return this
 }
@@ -39,7 +38,6 @@ func (this *Protocol) Marshal(payload []byte) []byte {
 	buf.Write(tmpBuff.Bytes())
 	buf.Write([]byte(this.app))
 	buf.Write(payload)
-	log.Info(string(buf.Bytes()))
 	return buf.Bytes()
 }
 
@@ -54,12 +52,10 @@ func (this *Protocol) Read() ([]byte, []byte, error) {
 	b_buf := bytes.NewBuffer(buf[:4])
 	var dataLength int32
 	binary.Read(b_buf, binary.BigEndian, &dataLength)
-	log.Info("dataLength: %d", dataLength)
 	//app length
 	var appLength int32
 	b_buf.Write(buf[4:8])
 	binary.Read(b_buf, binary.BigEndian, &appLength)
-	log.Info("appLength: %d", appLength)
 
 	//app + data
 	payloadLength := int(dataLength + appLength)
