@@ -28,19 +28,21 @@ func NewPoller(config *InputConfig, forwarder *Forwarder) *Poller {
 }
 
 func (this *Poller) Poll() {
-	if this.config.File[len(this.config.File)-2:] == "**" {
-		last_sep := strings.LastIndex(this.config.File, PATH_SEP)
-		dir := this.config.File[0:last_sep]
-		this.tailFilesInDirRecursive(dir)
-	} else if strings.Contains(this.config.File, "**") {
-		panic("'**' pattern must in the end")
-	} else if strings.Contains(this.config.File, "*") {
-		last_sep := strings.LastIndex(this.config.File, PATH_SEP)
-		dir := this.config.File[0:last_sep]
-		filename := this.config.File[last_sep+1:]
-		this.tailFilesInDir(dir, filename)
-	} else {
-		go this.tailFile(this.config.File, false)
+	for _, file := range this.config.File {
+		if file[len(file)-2:] == "**" {
+			last_sep := strings.LastIndex(file, PATH_SEP)
+			dir := file[0:last_sep]
+			this.tailFilesInDirRecursive(dir)
+		} else if strings.Contains(file, "**") {
+			panic("'**' pattern must in the end")
+		} else if strings.Contains(file, "*") {
+			last_sep := strings.LastIndex(file, PATH_SEP)
+			dir := file[0:last_sep]
+			filename := file[last_sep+1:]
+			this.tailFilesInDir(dir, filename)
+		} else {
+			go this.tailFile(file, false)
+		}
 	}
 }
 

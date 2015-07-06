@@ -39,7 +39,7 @@ func (this *GcollectorConfig) LoadConfig(cf *conf.Conf) {
 			panic(err)
 		}
 		input := new(InputConfig)
-		input.File = section.String("file", "")
+		input.File = section.StringList("file", nil)
 		types := strings.Split(section.String("types", ""), ",")
 		for _, tp := range types {
 			input.Types = append(input.Types, strings.Trim(tp, " "))
@@ -59,7 +59,7 @@ func (this *GcollectorConfig) LoadForwarder(cf *conf.Conf) {
 }
 
 type InputConfig struct {
-	File  string
+	File  []string
 	Types []string
 }
 
