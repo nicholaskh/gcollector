@@ -48,7 +48,6 @@ func (this *Forwarder) reconnect() {
 }
 
 func (this *Forwarder) Enqueue(line string) {
-	log.Info(line)
 	this.queue <- line
 }
 
