@@ -93,7 +93,7 @@ func (this *Poller) filter(txt string) (tag string) {
 			if this.parser.match(txt, tp) {
 				return tp
 			}
-		case LOG_TYPE_APP:
+		case LOG_TYPE_APP, LOG_TYPE_MEMBER_ACTIVITY, LOG_TYPE_MEMBER_ACTIVITY_COUPON, LOG_TYPE_MEMBER_COUPON:
 			return tp
 		}
 	}
