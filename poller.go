@@ -64,6 +64,7 @@ func (this *Poller) tailFile(filename string, isNew bool) {
 	}
 	for line := range t.Lines {
 		txt := line.Text
+		log.Info(txt)
 		if tag := this.filter(txt); tag != "" {
 			this.forwarder.Enqueue(fmt.Sprintf("%s|%s", tag, txt))
 		}
