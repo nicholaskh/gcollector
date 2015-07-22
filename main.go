@@ -31,6 +31,10 @@ func init() {
 		server.ShowVersionAndExit()
 	}
 
+	conf := server.LoadConfig(options.configFile)
+	GcollectorConf = new(GcollectorConfig)
+	GcollectorConf.LoadConfig(conf)
+
 	if options.kill {
 		if err := server.KillProcess(options.lockFile); err != nil {
 			fmt.Fprintf(os.Stderr, "stop failed: %s\n", err)
@@ -57,10 +61,6 @@ func init() {
 	signal.RegisterSignalHandler(syscall.SIGINT, func(sig os.Signal) {
 		shutdown()
 	})
-
-	conf := server.LoadConfig(options.configFile)
-	GcollectorConf = new(GcollectorConfig)
-	GcollectorConf.LoadConfig(conf)
 
 	err := RegisterEtc(GcollectorConf.EtcServers)
 	if err != nil {
