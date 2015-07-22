@@ -9,6 +9,7 @@ import (
 	"syscall"
 	"time"
 
+	"github.com/nicholaskh/etclib"
 	"github.com/nicholaskh/golib/locking"
 	"github.com/nicholaskh/golib/server"
 	"github.com/nicholaskh/golib/signal"
@@ -35,6 +36,9 @@ func init() {
 			fmt.Fprintf(os.Stderr, "stop failed: %s\n", err)
 			os.Exit(1)
 		}
+		etclib.Dial(GcollectorConf.EtcServers)
+		loadLocalAddr()
+		UnregisterEtc()
 
 		os.Exit(0)
 	}
